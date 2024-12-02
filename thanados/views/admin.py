@@ -1054,27 +1054,27 @@ CREATE TABLE devill.files AS
                     g.cursor.execute(sql, {'file_id': file_id, 'extension': extension,
                                            'filename': str(file_id) + extension, 'mimetype': mimetype})
 
-    sql_3 = 'SELECT id FROM devill.files'
-    g.cursor.execute(sql_3)
-    result = g.cursor.fetchall()
-    missingids = []
-    for row in result:
-        file_name = (Data.get_file_path(row.id))
-        row_id = (row.id)
-        if file_name:
-            filesfound = filesfound + 1
-        else:
-            filesmissing = filesmissing + 1
-            missingids.append(row_id)
-        g.cursor.execute(
-            "UPDATE devill.files SET filename = %(file_name)s WHERE id = %(row_id)s",
-            {'file_name': file_name, 'row_id': row_id})
-        sys.stdout.write(
-            "\rfiles found: " + str(filesfound) + " files missing: " + str(
-                filesmissing))
-        sys.stdout.flush()
-
-    print(missingids)
+    # sql_3 = 'SELECT id FROM devill.files'
+    # g.cursor.execute(sql_3)
+    # result = g.cursor.fetchall()
+    # missingids = []
+    # for row in result:
+    #     file_name = (Data.get_file_path(row.id))
+    #     row_id = (row.id)
+    #     if file_name:
+    #         filesfound = filesfound + 1
+    #     else:
+    #         filesmissing = filesmissing + 1
+    #         missingids.append(row_id)
+    #     g.cursor.execute(
+    #         "UPDATE devill.files SET filename = %(file_name)s WHERE id = %(row_id)s",
+    #         {'file_name': file_name, 'row_id': row_id})
+    #     sys.stdout.write(
+    #         "\rfiles found: " + str(filesfound) + " files missing: " + str(
+    #             filesmissing))
+    #     sys.stdout.flush()
+    #
+    # print(missingids)
     g.cursor.execute('DELETE FROM devill.files WHERE filename = NULL')
     g.cursor.execute("DELETE FROM devill.files WHERE filename = ''")
 
@@ -1926,25 +1926,10 @@ DROP TABLE IF EXISTS devill.typesforjson;
 CREATE TABLE devill.typesforjson AS
 SELECT DISTINCT 'type' AS level, id::text, name AS text, parent_id::text AS parent, path, name_path, topparent, forms
 FROM devill.types_all
-WHERE --set types to display in jstree
-    name_path LIKE 'Anthropology%'
-   OR name_path LIKE 'Grave Construction%'
-   OR name_path LIKE 'Gender%'
-   OR name_path LIKE 'Pathologies and Non-metric traits%'
-   OR name_path LIKE 'Bone measurements%'
-   OR name_path LIKE 'Siding%'
-   OR name_path LIKE 'Animals%'
-   OR name_path LIKE 'Body posture%'
-   OR name_path LIKE 'Case Study%'
-   OR name_path LIKE 'Grave Shape%'
-   OR name_path LIKE 'Position of Find in Grave%'
-   OR name_path LIKE 'Sex%'
-   OR name_path LIKE 'Stylistic Classification%'
-   OR name_path LIKE 'Color%'
-   OR name_path LIKE 'Condition of Burial%'
-   OR name_path LIKE 'Discoloration Staining Adhesion%'
-   OR name_path LIKE 'Stylistic Classification%'
+WHERE name_path LIKE 'Chronology%'
    OR name_path LIKE 'Count%'
+   OR name_path LIKE '%DeVill Properties%'
+   OR name_path LIKE 'Evidence%'
 UNION ALL
 SELECT DISTINCT 'dimensions' AS level, id::text, name AS text, parent_id::text AS parent, path, name_path, topparent, forms
 FROM devill.types_all
@@ -1976,7 +1961,7 @@ WHERE name_path LIKE 'Stratigraphic unit%'
 UNION ALL
 SELECT DISTINCT 'burial_site' AS level, id::text, name AS text, parent_id::text AS parent, path, name_path, topparent, forms
 FROM devill.types_all
-WHERE name_path LIKE '%Burial Site%'
+WHERE name_path LIKE '%Settlement%'
 UNION ALL
 SELECT DISTINCT 'feature' AS level, id::text, name AS text, parent_id::text AS parent, path, name_path, topparent, forms
 FROM devill.types_all
@@ -1987,6 +1972,9 @@ ORDER BY level, name_path;
 UPDATE devill.typesforjson
 SET parent = '#'
 WHERE parent ISNULL; --necessary for jstree
+UPDATE devill.typesforjson
+SET parent = '#'
+WHERE parent = '218826'; --necessary for jstree
 UPDATE devill.typesforjson
 SET parent = '#'
 WHERE parent = '73'; --necessary for jstree (removes parent from burial site type)

@@ -181,11 +181,8 @@ function appendSearch() {//append search form to dialog
         '<span class="input-group-text">1. </span>\n' +
         '<select class="form-select form-select-sm empty" title="Select whether to search for cemeteries, graves, burials (=human_remains) or finds" id="LevelSelect_' + Iter + '">\n' +
         '<option selected disabled>Select search level...</option>\n' +
-        '<option value="burial_site">Cemeteries</option>\n' +
-        '<option value="feature">Graves</option>\n' +
-        '<option value="strat">Burials</option>\n' +
+        '<option value="burial_site">Sites</option>\n' +
         '<option value="find">Finds</option>\n' +
-        '<option value="osteology">Osteology</option>\n' +
         '</select>\n' +
         '</div>');
     scrollToElement('start');
@@ -598,7 +595,7 @@ function setdatatable(data, tablePosition) {
                 placement: 'right',
                 container: '#myResultlist' + tablePosition + '_wrapper',
                 content: function () {
-                    return '<img class="popover-img" src="' + loc_image + $(this).data('img')  + image_suffix + '" alt=""/>';
+                    return '<img class="popover-img" src="' + loc_image + $(this).data('img') + image_suffix + '" alt=""/>';
                 }
             });
         },
@@ -631,8 +628,10 @@ function setdatatable(data, tablePosition) {
                     if (mycriteria === 'value') myPopupLine = '<a href="/entity/' + oData.id + '" title="' + oData.maintype + '" target="_self"><b>' + oData.context + '</b></a><br><br><i title="' + oData.path + '">' + oData.type + ': ' + oData.min + '</i>'
 
                     //create markers
-                    marker = L.marker([((oData.lon)), ((oData.lat))], {title: (oData.context)}).addTo(mymarkers).bindPopup(myPopupLine);
-                    heatmarkers.push([JSON.parse(oData.lon) + ',' + JSON.parse(oData.lat)]);
+                    if (oData.lon && oData.lat) {
+                        marker = L.marker([((oData.lon)), ((oData.lat))], {title: (oData.context)}).addTo(mymarkers).bindPopup(myPopupLine);
+                        heatmarkers.push([JSON.parse(oData.lon) + ',' + JSON.parse(oData.lat)]);
+                    }
                 }
             },
             {
@@ -690,7 +689,7 @@ function setFreeDatatable(data) {
                 placement: 'right',
                 container: '#myResultlistfreeResult_wrapper',
                 content: function () {
-                    return '<img class="popover-img" src="' + loc_image + $(this).data('img')  + image_suffix + '" alt=""/>';
+                    return '<img class="popover-img" src="' + loc_image + $(this).data('img') + image_suffix + '" alt=""/>';
                 }
             });
         },
@@ -713,8 +712,10 @@ function setFreeDatatable(data) {
                 "fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
                     $(nTd).html("<div title='" + oData.maintype + "'>" + oData.type + "</div> ");
                     myPopupLine = '<a href="/entity/' + oData.id + '" title="' + oData.maintype + '" target="_self"><b>' + oData.context + '</b></a><br><br><i title="' + oData.path + '">' + oData.type + '</i>'
-                    marker = L.marker([((oData.lon)), ((oData.lat))], {title: (oData.context)}).addTo(mymarkers).bindPopup(myPopupLine);
-                    heatmarkers.push([JSON.parse(oData.lon) + ',' + JSON.parse(oData.lat)]);
+                    if (oData.lon && oData.lat) {
+                        marker = L.marker([((oData.lon)), ((oData.lat))], {title: (oData.context)}).addTo(mymarkers).bindPopup(myPopupLine);
+                        heatmarkers.push([JSON.parse(oData.lon) + ',' + JSON.parse(oData.lat)]);
+                    }
                 }
             },
             {data: 'min'},
@@ -819,30 +820,30 @@ function setmymap(markers, heatmarkers, graveIds) {
     }).addTo(eval('map' + Iter));
 
     if (Iter !== 0) {
-    L.Control.Batn = L.Control.extend({
-        onAdd: function (map) {
-            var div = L.DomUtil.create('div', 'leaflet-bar easy-button-container');
-            div.innerHTML = '<div onmouseover="$(this).children(\'ul\').css(\'display\', \'block\')" onmouseout="$(this).children(\'ul\').css(\'display\', \'none\')">' +
-                '<a title="Download Data" style="background-size: 16px 16px; cursor: pointer; border-top-right-radius: 2px; border-bottom-right-radius: 2px;">' +
-                '<span class="fas fa-download"></span>' +
-                '</a>' +
-                '<ul class="easyBtnHolder" id="btnHolder' + Iter + '">' +
-                '<li class="d-inline-block"><a class="csvDownload" title="Download search result as CSV file" data-iter="' + Iter + '"><i class="fas fa-list-alt"></i></a></li>' +
-                '<li class="d-inline-block"><a class="jsonDownload" title="Download search result (sites) as GeoJSON file" data-iter="' + Iter + '"><i class="fas fa-map-marker-alt"></i></a></li>' +
-                '</ul>' +
-                '</div>';
+        L.Control.Batn = L.Control.extend({
+            onAdd: function (map) {
+                var div = L.DomUtil.create('div', 'leaflet-bar easy-button-container');
+                div.innerHTML = '<div onmouseover="$(this).children(\'ul\').css(\'display\', \'block\')" onmouseout="$(this).children(\'ul\').css(\'display\', \'none\')">' +
+                    '<a title="Download Data" style="background-size: 16px 16px; cursor: pointer; border-top-right-radius: 2px; border-bottom-right-radius: 2px;">' +
+                    '<span class="fas fa-download"></span>' +
+                    '</a>' +
+                    '<ul class="easyBtnHolder" id="btnHolder' + Iter + '">' +
+                    '<li class="d-inline-block"><a class="csvDownload" title="Download search result as CSV file" data-iter="' + Iter + '"><i class="fas fa-list-alt"></i></a></li>' +
+                    '<li class="d-inline-block"><a class="jsonDownload" title="Download search result (sites) as GeoJSON file" data-iter="' + Iter + '"><i class="fas fa-map-marker-alt"></i></a></li>' +
+                    '</ul>' +
+                    '</div>';
 
-            return div;
-        },
-        onRemove: function (map) {
-            // Nothing to do here
+                return div;
+            },
+            onRemove: function (map) {
+                // Nothing to do here
+            }
+        });
+        L.control.batn = function (opts) {
+            return new L.Control.Batn(opts);
         }
-    });
-    L.control.batn = function (opts) {
-        return new L.Control.Batn(opts);
-    }
 
-    L.control.batn({position: 'topleft'}).addTo(eval('map' + Iter));
+        L.control.batn({position: 'topleft'}).addTo(eval('map' + Iter));
     }
 
     printMapbutton(('map' + Iter), 'topleft');
@@ -911,8 +912,31 @@ function createResult(data, iter) { //finish query and show results on map
 
     eval('myGeoJSON' + iter + '  = JSON.parse(JSON.stringify(jsonresult))');
     resultrange = [];
-    eval('customResult' + iter + ' = L.geoJSON(jsonresult, {' +
+
+    const hasValidCoordinates = (feature) =>
+        feature.geometry &&
+        feature.geometry.type === 'Point' &&
+        feature.geometry.coordinates.length === 2 &&
+        !isNaN(feature.geometry.coordinates[0]) &&
+        !isNaN(feature.geometry.coordinates[1]);
+
+// Filter and duplicate the features
+    const filteredFeatures = jsonresult.features
+        .filter(hasValidCoordinates)
+        .map((feature) => ({...feature}));
+
+// Prepare the new FeatureCollection
+    const duplicatedFeatureCollection = {
+        ...jsonresult,
+        features: filteredFeatures,
+    };
+
+    console.log(duplicatedFeatureCollection);
+
+    console.log(jsonresult)
+    eval('customResult' + iter + ' = L.geoJSON(duplicatedFeatureCollection, {' +
         'pointToLayer: function (feature, latlng) {' +
+        'console.log(latlng);' +
         'return L.circleMarker(latlng, myStyle)' +
         '},' +
         'onEachFeature: function (feature, layer) {' +
@@ -998,8 +1022,8 @@ function combinate(operator) {
 
 function getCitation() {
     if (currentBtn !== 0) {
-    currentHeading = document.getElementById('Heading' + currentBtn);
-    Search = currentHeading.innerText;
+        currentHeading = document.getElementById('Heading' + currentBtn);
+        Search = currentHeading.innerText;
     } else {
         Search = "Search for: \"" + $('#searchTerm').val() + "\""
     }
@@ -1017,10 +1041,10 @@ $('#closeSiteMe').click(function () {
     $('#backgroundgray').toggle();
 })
 
-$(function(){
-  $('#searchTerm').keypress(function(e){
-    if(e.which == 13) {
-      returnFreeSearch()
-    }
-  })
+$(function () {
+    $('#searchTerm').keypress(function (e) {
+        if (e.which == 13) {
+            returnFreeSearch()
+        }
+    })
 })

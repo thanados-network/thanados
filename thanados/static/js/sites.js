@@ -339,7 +339,7 @@ function filterTable(filterType) {
         $.getJSON("/vocabulary/" + filterType + "/json", function (data) {
             if (typeof (data.entities_recursive) !== 'undefined') {
                 $.each(data.entities_recursive, function (i, ent) {
-                    if (ent.main_type.includes('Place > Burial Site')) {
+                    if (ent.main_type.includes('Place > Settlement')) {
                         entID = ent.id
                         $.each(sitelist, function (i, siteEnt) {
                             if (entID === siteEnt.id) {

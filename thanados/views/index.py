@@ -18,7 +18,7 @@ def index():
     sql = """
     SELECT '['
 || (SELECT count(child_id)::TEXT FROM devill.EntCount WHERE openatlas_class_name = 'place' 
-        AND site_id IN %(site_ids)s AND Path LIKE 'Place > Burial Site%%') || ','
+        AND site_id IN %(site_ids)s AND Path LIKE 'Place > Settlement%%') || ','
 || (SELECT count(child_id)::TEXT FROM devill.EntCount WHERE openatlas_class_name = 'feature' 
         AND site_id IN %(site_ids)s AND Path LIKE 'Feature > Grave%%') || ','
 || (SELECT count(child_id)::TEXT FROM devill.EntCount WHERE openatlas_class_name = 'stratigraphic_unit' 

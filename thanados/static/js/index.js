@@ -120,7 +120,7 @@ function getProjectData(id, container) {
 
         if (typeof (data.entities_recursive) !== 'undefined') {
             $.each(data.entities_recursive, function (i, ent) {
-                if (ent.main_type.includes('Place > Burial Site')) {
+                if (ent.main_type.includes('Place > Settlement')) {
                     sitecount += 1
                 }
             })
