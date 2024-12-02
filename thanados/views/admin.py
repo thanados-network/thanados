@@ -1054,27 +1054,27 @@ CREATE TABLE devill.files AS
                     g.cursor.execute(sql, {'file_id': file_id, 'extension': extension,
                                            'filename': str(file_id) + extension, 'mimetype': mimetype})
 
-    # sql_3 = 'SELECT id FROM devill.files'
-    # g.cursor.execute(sql_3)
-    # result = g.cursor.fetchall()
-    # missingids = []
-    # for row in result:
-    #     file_name = (Data.get_file_path(row.id))
-    #     row_id = (row.id)
-    #     if file_name:
-    #         filesfound = filesfound + 1
-    #     else:
-    #         filesmissing = filesmissing + 1
-    #         missingids.append(row_id)
-    #     g.cursor.execute(
-    #         "UPDATE devill.files SET filename = %(file_name)s WHERE id = %(row_id)s",
-    #         {'file_name': file_name, 'row_id': row_id})
-    #     sys.stdout.write(
-    #         "\rfiles found: " + str(filesfound) + " files missing: " + str(
-    #             filesmissing))
-    #     sys.stdout.flush()
-    #
-    # print(missingids)
+    sql_3 = 'SELECT id FROM devill.files'
+    g.cursor.execute(sql_3)
+    result = g.cursor.fetchall()
+    missingids = []
+    for row in result:
+        file_name = (Data.get_file_path(row.id))
+        row_id = (row.id)
+        if file_name:
+            filesfound = filesfound + 1
+        else:
+            filesmissing = filesmissing + 1
+            missingids.append(row_id)
+        g.cursor.execute(
+            "UPDATE devill.files SET filename = %(file_name)s WHERE id = %(row_id)s",
+            {'file_name': file_name, 'row_id': row_id})
+        sys.stdout.write(
+            "\rfiles found: " + str(filesfound) + " files missing: " + str(
+                filesmissing))
+        sys.stdout.flush()
+
+    print(missingids)
     g.cursor.execute('DELETE FROM devill.files WHERE filename = NULL')
     g.cursor.execute("DELETE FROM devill.files WHERE filename = ''")
 
