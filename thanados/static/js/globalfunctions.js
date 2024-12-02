@@ -1603,7 +1603,7 @@ function getBasemaps() {
     });
 
 
-    BasemapAT_grau = L.tileLayer('https://maps{s}.wien.gv.at/basemap/bmapgrau/{type}/google3857/{z}/{y}/{x}.{format}', {
+    BasemapAT_grau = L.tileLayer('https://mapsneu.wien.gv.at/basemap/bmapgrau/{type}/google3857/{z}/{y}/{x}.{format}', {
         crossOrigin: "",
         maxZoom: 25,
         maxNativeZoom: 19,
@@ -1615,7 +1615,7 @@ function getBasemaps() {
         bounds: [[46.35877, 8.782379], [49.037872, 17.189532]]
     });
 
-    BasemapAT_terrain = L.tileLayer('https://maps{s}.wien.gv.at/basemap/bmapgelaende/{type}/google3857/{z}/{y}/{x}.{format}', {
+    BasemapAT_terrain = L.tileLayer('https://mapsneu.wien.gv.at/basemap/bmapgelaende/{type}/google3857/{z}/{y}/{x}.{format}', {
         crossOrigin: "",
         maxNativeZoom: 17,
         maxZoom: 25,
