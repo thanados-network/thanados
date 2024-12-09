@@ -986,8 +986,8 @@ CREATE TABLE thanados.filestmp AS
 
 DROP TABLE thanados.files;
 CREATE TABLE thanados.files AS
-    (SELECT *
-     FROM thanados.filestmp);
+    (SELECT f.*, fi.creator, fi.license_holder
+     FROM thanados.filestmp f JOIN model.file_info fi ON f.id = fi.entity_id);
     """
     g.cursor.execute(sql_2)
     filesfound = 0
@@ -1306,7 +1306,9 @@ SELECT t.entity_id, f.files
                                            'license', t.license,
                                            'source', t.source,
                                            'reference', t.reference,
-                                           'description', t.description
+                                           'description', t.description,
+                                           'creator', t.creator,
+                                           'rightsholder', t.license_holder
                                        ))) AS files
                             FROM thanados.files t
                             GROUP BY parent_id) AS irgendwas

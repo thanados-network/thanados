@@ -2679,6 +2679,10 @@ function getImageHtml(files) {
     if (myImgSource !== '') AddOn = '. '
     if (typeof (files.license) != 'undefined') myImgSource += AddOn + files.license;
     if (myImgSource !== '') AddOn = '. '
+    if (typeof (files.creator) != 'undefined') myImgSource += AddOn + 'Creator: '+ files.creator;
+    if (myImgSource !== '') AddOn = '. '
+    if (typeof (files.rightsholder) != 'undefined') myImgSource += AddOn + 'Rights held by: '+ files.rightsholder;
+    if (myImgSource !== '') AddOn = '. '
     if (typeof (files.description) != 'undefined') myImgSource += AddOn + files.description;
     if (myImgSource == '') myImgSource = 'unknown Source'
     var imageHtml
