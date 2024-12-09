@@ -68,7 +68,6 @@ $.each(jsonmysite.features, function (i, feature) {
 })
 
 
-
 $('#mybreadcrumb').append(
     '<nav aria-label="breadcrumb">' +
     '<ol id="mybreadcrumbs" class="breadcrumb">' +
@@ -257,8 +256,19 @@ function getEntityData(parentName, parentId, currentfeature) {
     }
 
     if (typeof (tsbegin !== 'undefined')) timespan = tsbegin + ' to ' + tsend;
+
     if (typeof tsbegin == 'undefined') {
         timespan = '';
+    }
+
+    if (typeof tsbegin == 'undefined' && typeof tsend == 'undefined') {
+        dateToInsert = '';
+    }
+    if (typeof tsend !== 'undefined' && typeof tsbegin == 'undefined') {
+        dateToInsert = 'End: ' + tsend;
+    }
+    if (typeof tsend == 'undefined' && typeof tsbegin !== 'undefined') {
+        dateToInsert = 'Begin: ' + tsbegin;
     }
 
     dateToInsert = timespan;
@@ -759,12 +769,11 @@ function getEntityData(parentName, parentId, currentfeature) {
             if (typeof (child.properties.name) != 'undefined') myentity.name = child.properties.name;
             if (typeof (child.properties.maintype.name) != 'undefined') myentity.type = child.properties.maintype.name;
             if (typeof (child.properties.maintype.path) != 'undefined') myentity.path = child.properties.maintype.path;
+            myentity.begin = '';
+            myentity.end = '';
             if (typeof (child.properties.timespan) != 'undefined') {
                 if (typeof (child.properties.timespan.begin_from) != 'undefined') myentity.begin = child.properties.timespan.begin_from;
                 if (typeof (child.properties.timespan.end_to) != 'undefined') myentity.end = child.properties.timespan.end_to;
-            } else {
-                myentity.begin = '';
-                myentity.end = '';
             }
 
             findCount = 0;
@@ -1144,8 +1153,14 @@ function setcatalogue(currentchildren, parentDiv, iter) {
             var tsend = parseInt((currentfeature.properties.timespan.end_to), 10);
         var timespan = tsbegin + ' to ' + tsend;
         var dateToInsert = timespan;
-        if (typeof tsbegin == 'undefined') {
-            var dateToInsert = '';
+        if (typeof tsbegin == 'undefined' && typeof tsend == 'undefined') {
+            dateToInsert = '';
+        }
+        if (typeof tsend !== 'undefined' && typeof tsbegin == 'undefined') {
+            dateToInsert = 'End: ' + tsend;
+        }
+        if (typeof tsend == 'undefined' && typeof tsbegin !== 'undefined') {
+            dateToInsert = 'Begin: ' + tsbegin;
         }
 
         var RCdate = false;
@@ -1269,9 +1284,6 @@ function setcatalogue(currentchildren, parentDiv, iter) {
         });
         $.each(currentfeature.files, function (f, file) {
             var myImgSource = '';
-            if (typeof (file.source) != 'undefined') myImgSource = file.source;
-            if (typeof (file.source) == 'undefined') myImgSource = "unknown source";
-            if ((typeof (file.source) != 'undefined') && (typeof (file.reference) != 'undefined')) myImgSource = file.source + ' ' + file.reference;
             $('#myModalImagecontainer' + entId).append('<div class="cat-image-container col-lg-4 mt-2">' + getImageHtml(file) + '</div>');
         });
 

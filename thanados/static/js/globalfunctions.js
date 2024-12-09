@@ -2142,7 +2142,7 @@ function today() {
 //captions  for lightbox images
 $.featherlight.prototype.afterContent = function () {
     var caption = this.$currentTarget.find('img').attr('title');
-    if (caption) caption = "Image after: " + caption;
+    if (caption) caption = "Image: " + caption;
     this.$instance.find('.caption').remove();
     $('<div style="max-width: fit-content; font-size: 0.875em" class="caption text-muted">').text(caption).appendTo(this.$instance.find('.featherlight-content'));
 }
@@ -2674,8 +2674,13 @@ function getImageHtml(files) {
     files.file_name = loc_image + files.file_name;
     var myImgSource = '';
     if (typeof (files.source) != 'undefined') myImgSource = files.source;
-    if (typeof (files.source) == 'undefined') myImgSource = "unknown source";
     if ((typeof (files.source) != 'undefined') && (typeof (files.reference) != 'undefined')) myImgSource = files.source + ' ' + files.reference;
+    var AddOn = ''
+    if (myImgSource !== '') AddOn = '. '
+    if (typeof (files.license) != 'undefined') myImgSource += AddOn + files.license;
+    if (myImgSource !== '') AddOn = '. '
+    if (typeof (files.description) != 'undefined') myImgSource += AddOn + files.description;
+    if (myImgSource == '') myImgSource = 'unknown Source'
     var imageHtml
     if (files.file_name.includes('.glb')) {
         //console.log(files.file_name);

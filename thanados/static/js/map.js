@@ -95,7 +95,7 @@ function setmap(myjson) {
         popupAnchor: [0, -34]
     });
 
-    allsitesStyle ={
+    allsitesStyle = {
         "color": "#000000",
         "weight": 1,
         "fillOpacity": 0.8,
@@ -127,9 +127,28 @@ function setmap(myjson) {
             '<a title="Link to backend" class="backendlink d-none float-end" href="' + openAtlasUrl + myjson.site_id + '" target="_blank""><i class="float-end text-secondary fas fa-database"></i></a></div>'
         );
         if (typeof (myjson.properties.timespan) !== 'undefined') {
+
+            tsbegin = myjson.properties.timespan.begin_from
+            tsend = myjson.properties.timespan.end_to
+
+            dateToInsert = '';
+
+            if (typeof (tsbegin !== 'undefined')) dateToInsert = tsbegin + ' to ' + tsend;
+
+
+            if (typeof tsbegin == 'undefined' && typeof tsend == 'undefined') {
+                dateToInsert = '';
+            }
+            if (typeof tsend !== 'undefined' && typeof tsbegin == 'undefined') {
+                dateToInsert = 'End: ' + tsend;
+            }
+            if (typeof tsend == 'undefined' && typeof tsbegin !== 'undefined') {
+                dateToInsert = 'Begin: ' + tsbegin;
+            }
+
             $('#accordion1').append(
                 '<div title="Timespan" style="display: block; padding: 0 1em;"><b>Dating: </b>' +
-                myjson.properties.timespan.begin_from + ' to ' + myjson.properties.timespan.end_to +
+                dateToInsert +
                 '</div>'
             )
         }
@@ -709,11 +728,22 @@ function getModalData(parentDiv, currentfeature, parenttimespan) {
             var tsbegin = parseInt((currentfeature.properties.timespan.begin_from), 10);
         if (typeof (currentfeature.properties.timespan) !== 'undefined' && typeof (currentfeature.properties.timespan.end_to) !== 'undefined')
             var tsend = parseInt((currentfeature.properties.timespan.end_to), 10);
-        var timespan = tsbegin + ' to ' + tsend;
-        var dateToInsert = timespan;
-        if (typeof tsbegin == 'undefined') {
-            var dateToInsert = '';
+
+        var dateToInsert = '';
+
+        if (typeof (tsbegin !== 'undefined')) dateToInsert = tsbegin + ' to ' + tsend;
+
+
+        if (typeof tsbegin == 'undefined' && typeof tsend == 'undefined') {
+            dateToInsert = '';
         }
+        if (typeof tsend !== 'undefined' && typeof tsbegin == 'undefined') {
+            dateToInsert = 'End: ' + tsend;
+        }
+        if (typeof tsend == 'undefined' && typeof tsbegin !== 'undefined') {
+            dateToInsert = 'Begin: ' + tsbegin;
+        }
+
 
         var parentDiv = 'myModalContent';
         $('#myModalContent').empty();
@@ -736,8 +766,24 @@ function getModalData(parentDiv, currentfeature, parenttimespan) {
             var tsbegin = parseInt((currentfeature.properties.timespan.begin_from), 10);
         if (typeof (currentfeature.properties.timespan) !== 'undefined' && typeof (currentfeature.properties.timespan.end_to) !== 'undefined')
             var tsend = parseInt((currentfeature.properties.timespan.end_to), 10);
+
         var timespan = tsbegin + ' to ' + tsend;
+
         var dateToInsert = timespan;
+
+        if (typeof (tsbegin !== 'undefined')) dateToInsert = tsbegin + ' to ' + tsend;
+
+
+        if (typeof tsbegin == 'undefined' && typeof tsend == 'undefined') {
+            dateToInsert = '';
+        }
+        if (typeof tsend !== 'undefined' && typeof tsbegin == 'undefined') {
+            dateToInsert = 'End: ' + tsend;
+        }
+        if (typeof tsend == 'undefined' && typeof tsbegin !== 'undefined') {
+            dateToInsert = 'Begin: ' + tsbegin;
+        }
+
         if (typeof tsbegin == 'undefined') {
             var dateToInsert = '';
         }
@@ -745,6 +791,7 @@ function getModalData(parentDiv, currentfeature, parenttimespan) {
         if (timespan == parenttimespan) {
             var dateToInsert = '';
         }
+
 
         if (currentfeature.properties.maintype.systemtype == 'feature') {
             var children = currentfeature.burials;
