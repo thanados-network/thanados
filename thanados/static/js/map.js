@@ -445,7 +445,7 @@ function polygonSelect() {
 
 //define invisible marker
     invisIcon = L.icon({
-        iconUrl: '/static/images/icons/burial.png',
+        iconUrl: '/static/images/icons/logo_small.png',
         iconSize: [1, 1] // size of the icon
     });
 
@@ -722,7 +722,7 @@ function getModalData(parentDiv, currentfeature, parenttimespan) {
         var closebutton = '';
         var entId = currentfeature.site_id;
         var entName = currentfeature.name;
-        var iconpath = '/static/images/icons/grave30px.png';
+        var iconpath = '/static/images/icons/logo_small.png';
         var entDesc = currentfeature.properties.description;
         if (typeof entDesc == 'undefined') {
             var entDesc = '';
@@ -774,7 +774,7 @@ function getModalData(parentDiv, currentfeature, parenttimespan) {
 
         if (currentfeature.properties.maintype.systemtype == 'feature') {
             var children = currentfeature.burials;
-            var iconpath = '/static/images/icons/grave30px.png';
+            var iconpath = '/static/images/icons/logo_small.png';
             var parentDiv = 'myModalContent';
             $('#myModalContent').empty();
             $(parentDiv).empty();
@@ -783,7 +783,7 @@ function getModalData(parentDiv, currentfeature, parenttimespan) {
 
         if (currentfeature.properties.maintype.systemtype == 'stratigraphic_unit') {
             var children = currentfeature.finds;
-            var iconpath = '/static/images/icons/burial.png';
+            var iconpath = '/static/images/icons/logo_small.png';
         }
 
         if (currentfeature.properties.maintype.systemtype == 'artifact') {
