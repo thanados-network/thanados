@@ -472,9 +472,9 @@ def edm(img_id=None, direct=False):
         result = g.cursor.fetchone()
         if result:
             if result.creator:
-                data.creator = result.creator
+                data['creator'] = result.creator
             if result.license_holder:
-                data.rightsholder = result.license_holder
+                data['rightsholder'] = result.license_holder
 
 
         data['description'] = get_lan_text(img_id)
