@@ -445,6 +445,7 @@ def edm(img_id=None, direct=False):
         data = {
             'identifier': identifier,
             'description': get_lan_text(img_id),
+            'id': img_id,
             'type': get_dc_type(img_id),
             'title': get_lan_labels(img_id),
             'language': ['de'],
@@ -618,6 +619,9 @@ def edm(img_id=None, direct=False):
             create_subelement(web_resource, 'svcs:has_service',
                               attrib={'rdf:resource': app.config[
                                                           "IIIF_URL"] + str(img_id) + extension[0]})
+
+        # - dc:identifier
+        create_subelement(provided_cho, 'dc:identifier', img_id)
 
         # - dc:title
         for row in sorted(data['title'], key=lambda x: (next(iter(x)), next(iter(x.values())))):
