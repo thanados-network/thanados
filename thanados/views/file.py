@@ -190,6 +190,11 @@ def edm(img_id=None, direct=False):
         result = g.cursor.fetchone().data
         if result:
             return json.dumps(result)
+    if img_id:
+        g.cursor.execute("SELECT EXISTS(SELECT 1 FROM devill.files WHERE id = %s)", (img_id,))
+        file_exists = g.cursor.fetchone()[0]
+        if not file_exists:
+            abort(404)
 
     if not direct:
         try:

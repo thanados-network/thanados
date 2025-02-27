@@ -3209,10 +3209,11 @@ def set_edm():
     import requests
     if current_user.group != 'admin':
         abort(403)
-
-    g.cursor.execute('SELECT DISTINCT id FROM devill.files ORDER BY id DESC')
+    g.cursor.execute('DELETE from devill_meta.xml_data WHERE id NOT IN (SELECT id FROM model.entity)') #delete file entries for non existing files
+    g.cursor.execute(f'SELECT DISTINCT id FROM devill.files WHERE id NOT IN {app.config["FILE_BLACKLIST"]} ORDER BY id DESC')
 
     result=g.cursor.fetchall()
+    print(result)
     i = 1
     for row in result:
         print('...')
@@ -3230,7 +3231,7 @@ def set_edm():
             else:
                 print('Yes, there is one, checking if it is up to date...')
 
-            response = requests.get(app.config['META_RESOLVE_URL'] + '/edm/' + str(entry.id) + '/True', timeout=600)
+            response = requests.get(app.config['META_RESOLVE_URL'] + '/edm/' + str(entry.id) + '/True')
             if response.status_code == 200:
                 current_xml = response.text
                 if saved_edm != current_xml:
@@ -3249,25 +3250,31 @@ def set_edm():
                 print('did not work with: ' + str(row.id))
                 print(f"Failed to fetch XML data. HTTP Status Code: {response.status_code}")
         else:
-            print('New file detected for id: ' + str(row.id))
-            g.cursor.execute(f"""INSERT INTO devill_meta.xml_data (id, filename, extension, mimetype, last_update) (SELECT DISTINCT
-                fl.id,
-                fl.filename,
-                fl.extension,
-                fl.mimetype,
-                now()::timestamp AS last_update FROM devill.filelist fl WHERE id = {row.id} LIMIT 1) """)
-            response = requests.get(
-                app.config['META_RESOLVE_URL'] + '/edm/' + str(row.id) + '/True', timeout=600)
-            if response.status_code == 200:
-                current_xml = response.text
-                print('making EDM for new file')
-                current_xml = current_xml.replace("'", "''")
-                g.cursor.execute(
-                    f"UPDATE devill_meta.xml_data SET edm = '{current_xml}' WHERE id = {row.id}")
-                g.cursor.execute(
-                    f'UPDATE devill_meta.xml_data SET last_update = NOW() WHERE id = {row.id}')
-                print('EDM for id ' + str(row.id) + ' created')
+            # Parameterbindung verhindert SQL-Injection
+            g.cursor.execute("SELECT EXISTS(SELECT 1 FROM devill.files WHERE id = %s)", (row.id,))
+            file_exists = g.cursor.fetchone()[0]
+            if file_exists:
+                print('New file detected for id: ' + str(row.id))
+                g.cursor.execute(f"""INSERT INTO devill_meta.xml_data (id, filename, extension, mimetype, last_update) (SELECT DISTINCT
+                    fl.id,
+                    fl.filename,
+                    fl.extension,
+                    fl.mimetype,
+                    now()::timestamp AS last_update FROM devill.filelist fl WHERE id = {row.id} LIMIT 1) """)
+                response = requests.get(
+                    app.config['META_RESOLVE_URL'] + '/edm/' + str(row.id) + '/True')
+                if response.status_code == 200:
+                    current_xml = response.text
+                    print('making EDM for new file')
+                    current_xml = current_xml.replace("'", "''")
+                    g.cursor.execute(
+                        f"UPDATE devill_meta.xml_data SET edm = '{current_xml}' WHERE id = {row.id}")
+                    g.cursor.execute(
+                        f'UPDATE devill_meta.xml_data SET last_update = NOW() WHERE id = {row.id}')
+                    print('EDM for id ' + str(row.id) + ' created')
+                else:
+                    print('did not work with: ' + str(row.id))
+                    print(f"Failed to fetch XML data. HTTP Status Code: {response.status_code}")
             else:
-                print('did not work with: ' + str(row.id))
-                print(f"Failed to fetch XML data. HTTP Status Code: {response.status_code}")
+                print ("Failed to fetch XML data. File with ID " + str(row.id) + " seems to have been deleted")
     return redirect(url_for('admin'))
