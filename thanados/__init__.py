@@ -2,12 +2,14 @@ import json
 
 import psycopg2.extras
 from flask import Flask, g, request
+from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
 from flask_login import current_user
 
 app = Flask(__name__, instance_relative_config=True)
 csrf = CSRFProtect(app)  # Make sure all forms are CSRF protected
 csrf.init_app(app)
+CORS(app, resources={r"*": {"origins": "*"}})
 
 app.config.from_object('config.default')  # Load config/INSTANCE_NAME.py
 app.config.from_pyfile('devill.py')  # Load instance/INSTANCE_NAME.py
