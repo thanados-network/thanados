@@ -11,47 +11,54 @@ class Data:
     def get_list():
         # noinspection SqlIdentifier
         sql_sites = """
-        DROP TABLE IF EXISTS thanados.tmpsites;
-CREATE TABLE thanados.tmpsites AS (
-    SELECT s.child_name                                           AS name,
-           REPLACE(split_part(s.description, '##', 1), '"', '``') AS description,
-           s.begin_from                                           AS begin,
-           s.end_to                                               AS end,
-           s.child_id                                             AS id,
-           s.typename                                             AS type,
-           s.path,
-           s.lat,
-           s.lon,
-           COUNT(s.child_id)::TEXT                                AS graves           
+                    DROP TABLE IF EXISTS thanados.tmpsites;
+                    CREATE TABLE thanados.tmpsites AS (SELECT s.child_name                                           AS name,
+                                                              REPLACE(split_part(s.description, '##', 1), '"', '``') AS description,
+                                                              s.begin_from                                           AS begin,
+                                                              s.end_to                                               AS end,
+                                                              s.child_id                                             AS id,
+                                                              s.typename                                             AS type,
+                                                              s.path,
+                                                              s.lat,
+                                                              s.lon,
+                                                              COUNT(s.child_id)::TEXT                                AS graves
 
-    FROM thanados.entities s
-             LEFT JOIN thanados.graves g ON s.child_id = g.parent_id             
-    WHERE s.openatlas_class_name = 'place'
-      AND s.lat IS NOT NULL
-      AND s.child_id IN  %(sites)s
-                     GROUP BY s.child_name, s.description, s.begin_from, s.end_to, s.child_id, s.typename, s.path, s.lat, s.lon
-                     ORDER BY s.child_name);"""
+                                                       FROM thanados.entities s
+                                                                LEFT JOIN thanados.graves g ON s.child_id = g.parent_id
+                                                       WHERE s.openatlas_class_name = 'place'
+                                                         AND s.lat IS NOT NULL
+                                                         AND s.child_id IN %(sites)s
+                                                       GROUP BY s.child_name, s.description, s.begin_from, s.end_to,
+                                                                s.child_id, s.typename, s.path, s.lat, s.lon
+                                                       ORDER BY s.child_name);"""
 
         sql_sites2 = """
-        UPDATE thanados.tmpsites SET (graves) = (SELECT graves FROM ( 
-            SELECT              
-                    s.name,
-                    s.description,
-                    s.begin,
-                    s.end,
-                    s.id,
-                    s.type,
-                    s.path,
-                    s.lat,
-                    s.lon,
-                    COUNT(mt.path) FILTER (WHERE mt.path LIKE '%> Grave%')::TEXT AS graves
-                                             
+                     UPDATE thanados.tmpsites
+                     SET (graves) = (SELECT graves
+                                     FROM (SELECT s.name,
+                                                  s.description,
+                                                  s.begin,
+                                                  s.end,
+                                                  s.id,
+                                                  s.type,
+                                                  s.path,
+                                                  s.lat,
+                                                  s.lon,
+                                                  COUNT(mt.path) FILTER (WHERE mt.path LIKE '%> Grave%')::TEXT AS graves
 
-                     FROM thanados.tmpsites s LEFT JOIN thanados.graves g ON s.id = g.parent_id LEFT JOIN thanados.maintype mt ON g.child_id = mt.entity_id 
-                     GROUP BY s.name, s.description, s.begin, s.end, s.id, s.type, s.path, s.lat, s.lon) a WHERE id = thanados.tmpsites.id);
-                     UPDATE thanados.tmpsites SET graves = NULL WHERE graves = '0';     
-                     
-            SELECT jsonb_agg(a) as sitelist FROM thanados.tmpsites a;"""
+
+                                           FROM thanados.tmpsites s
+                                                    LEFT JOIN thanados.graves g ON s.id = g.parent_id
+                                                    LEFT JOIN thanados.maintype mt ON g.child_id = mt.entity_id
+                                           GROUP BY s.name, s.description, s.begin, s.end, s.id, s.type, s.path, s.lat,
+                                                    s.lon) a
+                                     WHERE id = thanados.tmpsites.id);
+                     UPDATE thanados.tmpsites
+                     SET graves = NULL
+                     WHERE graves = '0';
+
+                     SELECT jsonb_agg(a) as sitelist
+                     FROM thanados.tmpsites a;"""
         g.cursor.execute(sql_sites, {"sites": tuple(g.site_list),
                                      "domains": app.config["DOMAIN_TYPES"]})
         g.cursor.execute(sql_sites2)
@@ -60,19 +67,16 @@ CREATE TABLE thanados.tmpsites AS (
     @staticmethod
     def get_ext_type_data():
         sql = """
-                SELECT id FROM thanados.types_all 
-                    WHERE id NOT IN 
-                        (SELECT DISTINCT type_id FROM thanados.ext_types) 
-                """
+              SELECT id
+              FROM thanados.types_all
+              WHERE id NOT IN
+                    (SELECT DISTINCT type_id FROM thanados.ext_types) \
+              """
         g.cursor.execute(sql)
         result = g.cursor.fetchall()
 
         g.cursor.execute('SELECT entity_id from web.reference_system')
         refsys = g.cursor.fetchall()
-
-
-
-
 
         def getBroadMatch(type_id, refId):
             g.cursor.execute(
@@ -81,17 +85,18 @@ CREATE TABLE thanados.tmpsites AS (
             parent = g.cursor.fetchone()
 
             broadsql = """
-                            SELECT 
-                                type_id, 
-                                url,
-                                website,
-                                name,
-                                description,
-                                id,
-                                identifier,
-                                skos
-                            FROM thanados.ext_types WHERE type_id = %(parent_id)s AND id = %(refId)s
-                        """
+                       SELECT type_id,
+                              url,
+                              website,
+                              name,
+                              description,
+                              id,
+                              identifier,
+                              skos
+                       FROM thanados.ext_types
+                       WHERE type_id = %(parent_id)s
+                         AND id = %(refId)s \
+                       """
 
             if parent.parent_id:
                 g.cursor.execute(broadsql, {'parent_id': parent.parent_id,
@@ -100,26 +105,23 @@ CREATE TABLE thanados.tmpsites AS (
                 print(broadresult)
                 if broadresult:
                     insertbroad = """
-                                        INSERT INTO thanados.ext_types (
-                                        type_id, 
-                                        url,
-                                        website,
-                                        name,
-                                        description,
-                                        id,
-                                        identifier,
-                                        skos)
-                                        VALUES (
-                                        %(type_id)s,
-                                        %(url)s,
-                                        %(website)s,
-                                        %(name)s,
-                                        %(description)s,
-                                        %(id)s,
-                                        %(identifier)s,
-                                        'broad match'
-                                        )
-                                """
+                                  INSERT INTO thanados.ext_types (type_id,
+                                                                  url,
+                                                                  website,
+                                                                  name,
+                                                                  description,
+                                                                  id,
+                                                                  identifier,
+                                                                  skos)
+                                  VALUES (%(type_id)s,
+                                          %(url)s,
+                                          %(website)s,
+                                          %(name)s,
+                                          %(description)s,
+                                          %(id)s,
+                                          %(identifier)s,
+                                          'broad match') \
+                                  """
                     g.cursor.execute(insertbroad, {'type_id': type_id,
                                                    'url': broadresult.url,
                                                    'website': broadresult.website,
@@ -140,9 +142,6 @@ CREATE TABLE thanados.tmpsites AS (
             for ent in result:
                 type_id = ent.id
                 getBroadMatch(type_id, refId)
-
-
-
 
     @staticmethod
     def get_file_path(id_: int):
@@ -168,15 +167,17 @@ CREATE TABLE thanados.tmpsites AS (
     @staticmethod
     def get_wordcloud(place_id):
         sql = """
-                SELECT types FROM
-                    (SELECT jsonb_agg(jsonb_build_object(
-                     'weight', t.weight,
-                     'text', t.type)) AS types FROM
-                        (SELECT type, COUNT(type) AS weight 
-                            FROM thanados.searchdata 
-                            WHERE site_id = %(place_id)s AND site_id IN %(sites)s 
-                            GROUP BY type order by weight desc) t) w
-                """
+              SELECT types
+              FROM (SELECT jsonb_agg(jsonb_build_object(
+                      'weight', t.weight,
+                      'text', t.type)) AS types
+                    FROM (SELECT type, COUNT(type) AS weight
+                          FROM thanados.searchdata
+                          WHERE site_id = %(place_id)s
+                            AND site_id IN %(sites)s
+                          GROUP BY type
+                          order by weight desc) t) w \
+              """
         g.cursor.execute(sql,
                          {'place_id': place_id, 'sites': tuple(g.site_list)})
         result = g.cursor.fetchone()
@@ -236,18 +237,18 @@ CREATE TABLE thanados.tmpsites AS (
             place_id = id_
         elif openatlas_class_name == 'feature':
             sql = """
-                 SELECT p.id
-                 FROM model.entity p
-                 JOIN model.link lf on p.id = lf.domain_id AND lf.property_code = 'P46'
-                 WHERE lf.range_id = %(object_id)s;"""
+                  SELECT p.id
+                  FROM model.entity p
+                           JOIN model.link lf on p.id = lf.domain_id AND lf.property_code = 'P46'
+                  WHERE lf.range_id = %(object_id)s;"""
             g.cursor.execute(sql, {"object_id": id_})
             place_id = g.cursor.fetchone()[0]
         elif openatlas_class_name == 'stratigraphic_unit':
             sql = """
                   SELECT p.id
                   FROM model.entity p
-                  JOIN model.link lf on p.id = lf.domain_id AND lf.property_code = 'P46'
-                  JOIN model.link ls on lf.range_id = ls.domain_id AND ls.property_code = 'P46'
+                           JOIN model.link lf on p.id = lf.domain_id AND lf.property_code = 'P46'
+                           JOIN model.link ls on lf.range_id = ls.domain_id AND ls.property_code = 'P46'
                   WHERE ls.range_id = %(object_id)s;"""
             g.cursor.execute(sql, {"object_id": id_})
             place_id = g.cursor.fetchone()[0]
@@ -255,9 +256,9 @@ CREATE TABLE thanados.tmpsites AS (
             sql = """
                   SELECT p.id
                   FROM model.entity p
-                  JOIN model.link lf on p.id = lf.domain_id AND lf.property_code = 'P46'
-                  JOIN model.link ls on lf.range_id = ls.domain_id AND ls.property_code = 'P46'
-                  JOIN model.link lfi on ls.range_id = lfi.domain_id AND lfi.property_code = 'P46'
+                           JOIN model.link lf on p.id = lf.domain_id AND lf.property_code = 'P46'
+                           JOIN model.link ls on lf.range_id = ls.domain_id AND ls.property_code = 'P46'
+                           JOIN model.link lfi on ls.range_id = lfi.domain_id AND lfi.property_code = 'P46'
                   WHERE lfi.range_id = %(object_id)s;"""
             g.cursor.execute(sql, {"object_id": id_})
             place_id = g.cursor.fetchone()[0]
@@ -265,9 +266,9 @@ CREATE TABLE thanados.tmpsites AS (
             sql = """
                   SELECT p.id
                   FROM model.entity p
-                  JOIN model.link lf on p.id = lf.domain_id AND lf.property_code = 'P46'
-                  JOIN model.link ls on lf.range_id = ls.domain_id AND ls.property_code = 'P46'
-                  JOIN model.link lfi on ls.range_id = lfi.domain_id AND lfi.property_code = 'P46'
+                           JOIN model.link lf on p.id = lf.domain_id AND lf.property_code = 'P46'
+                           JOIN model.link ls on lf.range_id = ls.domain_id AND ls.property_code = 'P46'
+                           JOIN model.link lfi on ls.range_id = lfi.domain_id AND lfi.property_code = 'P46'
                   WHERE lfi.range_id = %(object_id)s;"""
             g.cursor.execute(sql, {"object_id": id_})
             place_id = g.cursor.fetchone()[0]
@@ -277,45 +278,45 @@ CREATE TABLE thanados.tmpsites AS (
     def get_type_data(level, searchterm, site_id):
         if level == 'grave':
             sql = """
-                SELECT jsonb_agg(jsonb_build_object (
-	            'site_id', t.id,
-	            'site', t.sitename,
-	            'type', t.type,
-	            'count', t.count
-	            )) as types FROM
-		        (SELECT 
-		        m.id,
-		        m.name AS sitename,
-		        t.name AS type,
-		        count(t.name) 
-		        FROM model.entity m 
-		        JOIN thanados.entities e ON e.parent_id = m.id 
-		        JOIN thanados.types_main t ON e.child_id = t.entity_id
-		        WHERE t.path LIKE %(term)s AND m.id IN %(site_ids)s
-		        GROUP BY m.id, sitename, type
-		        ORDER BY 1) as t;"""
+                  SELECT jsonb_agg(jsonb_build_object(
+                          'site_id', t.id,
+                          'site', t.sitename,
+                          'type', t.type,
+                          'count', t.count
+                                   )) as types
+                  FROM (SELECT m.id,
+                               m.name AS sitename,
+                               t.name AS type,
+                               count(t.name)
+                        FROM model.entity m
+                                 JOIN thanados.entities e ON e.parent_id = m.id
+                                 JOIN thanados.types_main t ON e.child_id = t.entity_id
+                        WHERE t.path LIKE %(term)s
+                          AND m.id IN %(site_ids)s
+                        GROUP BY m.id, sitename, type
+                        ORDER BY 1) as t;"""
             g.cursor.execute(sql, {"term": searchterm, "site_ids": site_id})
             return g.cursor.fetchall()
         if level == 'burial':
             sql = """
-                            SELECT jsonb_agg(jsonb_build_object (
-            	            'site_id', t.id,
-            	            'site', t.sitename,
-            	            'type', t.type,
-            	            'count', t.count
-            	            )) as types FROM
-            		        (SELECT 
-            		        m.id,
-            		        m.name AS sitename,
-            		        t.name AS type,
-            		        count(t.name) 
-            		        FROM model.entity m 
-            		        JOIN thanados.entities e ON e.parent_id = m.id
-            		        JOIN thanados.entities e1 ON e1.parent_id = e.child_id
-            		        JOIN thanados.types_main t ON e1.child_id = t.entity_id
-            		        WHERE t.path LIKE %(term)s AND m.id IN %(site_ids)s
-            		        GROUP BY m.id, sitename, type
-            		        ORDER BY 1) as t;"""
+                  SELECT jsonb_agg(jsonb_build_object(
+                          'site_id', t.id,
+                          'site', t.sitename,
+                          'type', t.type,
+                          'count', t.count
+                                   )) as types
+                  FROM (SELECT m.id,
+                               m.name AS sitename,
+                               t.name AS type,
+                               count(t.name)
+                        FROM model.entity m
+                                 JOIN thanados.entities e ON e.parent_id = m.id
+                                 JOIN thanados.entities e1 ON e1.parent_id = e.child_id
+                                 JOIN thanados.types_main t ON e1.child_id = t.entity_id
+                        WHERE t.path LIKE %(term)s
+                          AND m.id IN %(site_ids)s
+                        GROUP BY m.id, sitename, type
+                        ORDER BY 1) as t;"""
             g.cursor.execute(sql, {"term": searchterm, "site_ids": site_id})
             return g.cursor.fetchall()
 
@@ -326,50 +327,38 @@ CREATE TABLE thanados.tmpsites AS (
         entities = []
         types = []
         sql = """
-                        WITH RECURSIVE subunits AS (
-            	SELECT
-            		domain_id,
-            		range_id,
-            		property_code
-            	FROM
-            		model.link
-            	WHERE
-            		domain_id = %(id)s
-            	UNION
-            		SELECT
-            		l.domain_id,
-            		l.range_id,
-            		l.property_code
-            	FROM
-            		model.link l INNER JOIN subunits s ON s.range_id = l.domain_id WHERE l.property_code = 'P46'
-            ) SELECT
-            	*
-            FROM
-            	subunits
-            	
-            UNION ALL 
-            SELECT * FROM (
-            WITH RECURSIVE superunits AS (
-            	SELECT
-            		domain_id,
-            		range_id,
-            		property_code
-            	FROM
-            		model.link
-            	WHERE
-            		range_id = %(id)s
-            	UNION
-            		SELECT
-            		l.domain_id,
-            		l.range_id,
-            		l.property_code
-            	FROM
-            		model.link l INNER JOIN superunits s ON s.domain_id = l.range_id WHERE l.property_code = 'P46'
-            ) SELECT
-            	*
-            FROM
-            	superunits) su
-        """
+              WITH RECURSIVE subunits AS (SELECT domain_id,
+                                                 range_id,
+                                                 property_code
+                                          FROM model.link
+                                          WHERE domain_id = %(id)s
+                                          UNION
+                                          SELECT l.domain_id,
+                                                 l.range_id,
+                                                 l.property_code
+                                          FROM model.link l
+                                                   INNER JOIN subunits s ON s.range_id = l.domain_id
+                                          WHERE l.property_code = 'P46')
+              SELECT *
+              FROM subunits
+
+              UNION ALL
+              SELECT *
+              FROM (WITH RECURSIVE superunits AS (SELECT domain_id,
+                                                         range_id,
+                                                         property_code
+                                                  FROM model.link
+                                                  WHERE range_id = %(id)s
+                                                  UNION
+                                                  SELECT l.domain_id,
+                                                         l.range_id,
+                                                         l.property_code
+                                                  FROM model.link l
+                                                           INNER JOIN superunits s ON s.domain_id = l.range_id
+                                                  WHERE l.property_code = 'P46')
+                    SELECT *
+                    FROM superunits) su \
+              """
 
         g.cursor.execute(sql, {"id": id})
         result = g.cursor.fetchall()
@@ -385,25 +374,18 @@ CREATE TABLE thanados.tmpsites AS (
         entities = tuple(entities)
 
         sqltypes = """
-                WITH RECURSIVE supertypes AS (
-                    	SELECT
-                    		id,
-                    		parent_id
-                    	FROM
-                    		thanados.types_all
-                    	WHERE
-                    		id IN %(id)s
-                    	UNION
-                    		SELECT
-                    		l.id,
-                    		l.parent_id
-                    	FROM
-                    		thanados.types_all l INNER JOIN supertypes s ON s.parent_id = l.id
-                    ) SELECT
-                    	*
-                    FROM
-                    	supertypes;
-                """
+                   WITH RECURSIVE supertypes AS (SELECT id,
+                                                        parent_id
+                                                 FROM thanados.types_all
+                                                 WHERE id IN %(id)s
+                                                 UNION
+                                                 SELECT l.id,
+                                                        l.parent_id
+                                                 FROM thanados.types_all l
+                                                          INNER JOIN supertypes s ON s.parent_id = l.id)
+                   SELECT *
+                   FROM supertypes; \
+                   """
 
         g.cursor.execute(sqltypes, {"id": tuple(types)})
         resulttypes = g.cursor.fetchall()
@@ -415,8 +397,11 @@ CREATE TABLE thanados.tmpsites AS (
                 types.append(row.parent_id)
 
         sql2 = """
-                    SELECT id, name, openatlas_class_name FROM model.entity WHERE id IN %(entities)s OR id IN %(types)s
-                        """
+               SELECT id, name, openatlas_class_name
+               FROM model.entity
+               WHERE id IN %(entities)s
+                  OR id IN %(types)s \
+               """
         g.cursor.execute(sql2, {"entities": entities, "types": tuple(types)})
         result2 = g.cursor.fetchall()
 
@@ -442,35 +427,41 @@ CREATE TABLE thanados.tmpsites AS (
 
     @staticmethod
     def getWikidataimage(id):
-        import urllib, json, hashlib, requests
+        import urllib.request, urllib.parse, json, hashlib, requests
+
+        headers = {
+            "User-Agent": (
+                "THANADOS (https://github.com/stefaneichert/thanados; "
+                "stefan.eichert@nhm.at)"
+            )
+        }
 
         try:
-            with urllib.request.urlopen(
-                    "https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&property=P18&entity=" + id) as url:
-                wdata = json.loads(url.read().decode())
-                
-            if wdata['claims']:
-                wfilename = (
-                wdata['claims']['P18'][0]['mainsnak']['datavalue']['value'])
-                newfile = (wfilename.replace(' ', '_'))
-                # print(newfile)
-                md5 = (hashlib.md5(newfile.encode('utf-8')).hexdigest())
-                # print(md5)
-                print(newfile)
+            # safely encode ID
+            url = (
+                    "https://www.wikidata.org/w/api.php"
+                    "?action=wbgetclaims&format=json&property=P18&entity="
+                    + urllib.parse.quote(id)
+            )
+            req = urllib.request.Request(url, headers=headers)
+
+            with urllib.request.urlopen(req) as response:
+                wdata = json.loads(response.read().decode())
+
+            if wdata.get("claims"):
+                wfilename = wdata["claims"]["P18"][0]["mainsnak"]["datavalue"]["value"]
+                newfile = wfilename.replace(" ", "_")
+                md5 = hashlib.md5(newfile.encode("utf-8")).hexdigest()
 
                 def extract_image_license(image_name):
-
-                    start_of_end_point_str = 'https://commons.wikimedia.org' \
-                                             '/w/api.php?action=query&titles=File:'
-                    end_of_end_point_str = '&prop=imageinfo&iiprop=extmetadata&format=json'
-                    print(start_of_end_point_str + image_name + end_of_end_point_str)
-                    result = requests.get(
-                        start_of_end_point_str + image_name + end_of_end_point_str)
-                    result = result.json()
-                    page_id = next(iter(result['query']['pages']))
-                    image_info = result['query']['pages'][page_id]['imageinfo']
-
-                    return image_info
+                    endpoint = (
+                            "https://commons.wikimedia.org/w/api.php"
+                            "?action=query&titles=File:" + urllib.parse.quote(image_name) +
+                            "&prop=imageinfo&iiprop=extmetadata&format=json"
+                    )
+                    result = requests.get(endpoint, headers=headers).json()
+                    page_id = next(iter(result["query"]["pages"]))
+                    return result["query"]["pages"][page_id]["imageinfo"]
 
                 try:
                     metadata = extract_image_license(newfile)
@@ -478,14 +469,10 @@ CREATE TABLE thanados.tmpsites AS (
                     return None
 
                 image = {
-                    'url': 'https://upload.wikimedia.org/wikipedia/commons/' + md5[
-                                                                               0:1] + '/' + md5[
-                                                                                            0:2] + '/' + newfile,
-                    'urlthumb': 'https://upload.wikimedia.org/wikipedia/commons/thumb/' + md5[
-                                                                                          0:1] + '/' + md5[
-                                                                                                       0:2] + '/' + newfile + '/200px-' + newfile,
-                    'metadata': metadata[0]['extmetadata'],
-                    'origin': 'https://commons.wikimedia.org/wiki/File:' + newfile
+                    "url": f"https://upload.wikimedia.org/wikipedia/commons/{md5[0:1]}/{md5[0:2]}/{newfile}",
+                    "urlthumb": f"https://upload.wikimedia.org/wikipedia/commons/thumb/{md5[0:1]}/{md5[0:2]}/{newfile}/200px-{newfile}",
+                    "metadata": metadata[0]["extmetadata"],
+                    "origin": f"https://commons.wikimedia.org/wiki/File:{newfile}",
                 }
 
                 return image
@@ -493,13 +480,28 @@ CREATE TABLE thanados.tmpsites AS (
                 return None
         except Exception:
             return None
+
     @staticmethod
     def getWikidata(id):
         import urllib, json
 
-        with urllib.request.urlopen(
-                "https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&search=" + id + "&language=en") as url:
-            wdata = json.loads(url.read().decode())
+        url = (
+                "https://www.wikidata.org/w/api.php"
+                "?action=wbsearchentities&format=json&language=en&search=" + id
+        )
+
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": (
+                    "THANADOS (https://github.com/stefaneichert/thanados; "
+                    "stefan.eichert@nhm.at)"
+                )
+            },
+        )
+
+        with urllib.request.urlopen(req) as response:
+            wdata = json.loads(response.read().decode())
 
         try:
             description = wdata['search'][0]['description']
@@ -529,7 +531,8 @@ CREATE TABLE thanados.tmpsites AS (
 
         try:
             GettyData['qualifier'] = soup.find('Qualifier').string
-        except: GettyData['qualifier'] = ''
+        except:
+            GettyData['qualifier'] = ''
 
         try:
             GettyData['description'] = soup.find(
@@ -543,45 +546,45 @@ CREATE TABLE thanados.tmpsites AS (
     def get_type_data(level, searchterm, site_id):
         if level == 'grave':
             sql = """
-                    SELECT jsonb_agg(jsonb_build_object (
-    	            'site_id', t.id,
-    	            'site', t.sitename,
-    	            'type', t.type,
-    	            'count', t.count
-    	            )) as types FROM
-    		        (SELECT 
-    		        m.id,
-    		        m.name AS sitename,
-    		        t.name AS type,
-    		        count(t.name) 
-    		        FROM model.entity m 
-    		        JOIN thanados.entities e ON e.parent_id = m.id 
-    		        JOIN thanados.types_main t ON e.child_id = t.entity_id
-    		        WHERE t.path LIKE %(term)s AND m.id IN %(site_ids)s
-    		        GROUP BY m.id, sitename, type
-    		        ORDER BY 1) as t;"""
+                  SELECT jsonb_agg(jsonb_build_object(
+                          'site_id', t.id,
+                          'site', t.sitename,
+                          'type', t.type,
+                          'count', t.count
+                                   )) as types
+                  FROM (SELECT m.id,
+                               m.name AS sitename,
+                               t.name AS type,
+                               count(t.name)
+                        FROM model.entity m
+                                 JOIN thanados.entities e ON e.parent_id = m.id
+                                 JOIN thanados.types_main t ON e.child_id = t.entity_id
+                        WHERE t.path LIKE %(term)s
+                          AND m.id IN %(site_ids)s
+                        GROUP BY m.id, sitename, type
+                        ORDER BY 1) as t;"""
             g.cursor.execute(sql, {"term": searchterm, "site_ids": site_id})
             return g.cursor.fetchall()
         if level == 'burial':
             sql = """
-                                SELECT jsonb_agg(jsonb_build_object (
-                	            'site_id', t.id,
-                	            'site', t.sitename,
-                	            'type', t.type,
-                	            'count', t.count
-                	            )) as types FROM
-                		        (SELECT 
-                		        m.id,
-                		        m.name AS sitename,
-                		        t.name AS type,
-                		        count(t.name) 
-                		        FROM model.entity m 
-                		        JOIN thanados.entities e ON e.parent_id = m.id
-                		        JOIN thanados.entities e1 ON e1.parent_id = e.child_id
-                		        JOIN thanados.types_main t ON e1.child_id = t.entity_id
-                		        WHERE t.path LIKE %(term)s AND m.id IN %(site_ids)s
-                		        GROUP BY m.id, sitename, type
-                		        ORDER BY 1) as t;"""
+                  SELECT jsonb_agg(jsonb_build_object(
+                          'site_id', t.id,
+                          'site', t.sitename,
+                          'type', t.type,
+                          'count', t.count
+                                   )) as types
+                  FROM (SELECT m.id,
+                               m.name AS sitename,
+                               t.name AS type,
+                               count(t.name)
+                        FROM model.entity m
+                                 JOIN thanados.entities e ON e.parent_id = m.id
+                                 JOIN thanados.entities e1 ON e1.parent_id = e.child_id
+                                 JOIN thanados.types_main t ON e1.child_id = t.entity_id
+                        WHERE t.path LIKE %(term)s
+                          AND m.id IN %(site_ids)s
+                        GROUP BY m.id, sitename, type
+                        ORDER BY 1) as t;"""
             g.cursor.execute(sql, {"term": searchterm, "site_ids": site_id})
             return g.cursor.fetchall()
 
@@ -645,20 +648,22 @@ class RCData:
         import pkg_resources
 
         sql = """
-            SELECT entity_id, jsonb_agg(sample::JSONB) AS sample FROM
-                (WITH RECURSIVE superents AS (
-                    SELECT entity_id,
-                        parent_id,
-                        sample AS sample
-                    FROM thanados.rc_tree WHERE sample IS NOT NULL
-                UNION
-                    SELECT t.entity_id,
-                        t.parent_id, s.sample AS sample
-                FROM thanados.rc_tree t JOIN superents s ON s.parent_id = t.entity_id
-            )
-            SELECT *
-            FROM superents) se GROUP BY entity_id;
-            """
+              SELECT entity_id, jsonb_agg(sample::JSONB) AS sample
+              FROM (WITH RECURSIVE superents AS (SELECT entity_id,
+                                                        parent_id,
+                                                        sample AS sample
+                                                 FROM thanados.rc_tree
+                                                 WHERE sample IS NOT NULL
+                                                 UNION
+                                                 SELECT t.entity_id,
+                                                        t.parent_id,
+                                                        s.sample AS sample
+                                                 FROM thanados.rc_tree t
+                                                          JOIN superents s ON s.parent_id = t.entity_id)
+                    SELECT *
+                    FROM superents) se
+              GROUP BY entity_id; \
+              """
 
         g.cursor.execute(sql)
         result = g.cursor.fetchall()
@@ -711,7 +716,7 @@ class RCData:
 
                         with open(
                                 app.root_path + "/static/images/rc_dates/rc_stacked_" + str(
-                                        entId) + ".png", "wb") as f:
+                                    entId) + ".png", "wb") as f:
                             f.write(buf.getbuffer())
                         matplotlib.pyplot.close(fig='all')
 
