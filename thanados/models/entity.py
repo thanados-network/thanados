@@ -454,35 +454,41 @@ CREATE TABLE devill.tmpsites AS (
 
     @staticmethod
     def getWikidataimage(id):
-        import urllib, json, hashlib, requests
+        import urllib.request, urllib.parse, json, hashlib, requests
+
+        headers = {
+            "User-Agent": (
+                "THANADOS (https://github.com/stefaneichert/thanados; "
+                "stefan.eichert@nhm.at)"
+            )
+        }
 
         try:
-            with urllib.request.urlopen(
-                    "https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&property=P18&entity=" + id) as url:
-                wdata = json.loads(url.read().decode())
-                
-            if wdata['claims']:
-                wfilename = (
-                wdata['claims']['P18'][0]['mainsnak']['datavalue']['value'])
-                newfile = (wfilename.replace(' ', '_'))
-                # print(newfile)
-                md5 = (hashlib.md5(newfile.encode('utf-8')).hexdigest())
-                # print(md5)
-                print(newfile)
+            # safely encode ID
+            url = (
+                    "https://www.wikidata.org/w/api.php"
+                    "?action=wbgetclaims&format=json&property=P18&entity="
+                    + urllib.parse.quote(id)
+            )
+            req = urllib.request.Request(url, headers=headers)
+
+            with urllib.request.urlopen(req) as response:
+                wdata = json.loads(response.read().decode())
+
+            if wdata.get("claims"):
+                wfilename = wdata["claims"]["P18"][0]["mainsnak"]["datavalue"]["value"]
+                newfile = wfilename.replace(" ", "_")
+                md5 = hashlib.md5(newfile.encode("utf-8")).hexdigest()
 
                 def extract_image_license(image_name):
-
-                    start_of_end_point_str = 'https://commons.wikimedia.org' \
-                                             '/w/api.php?action=query&titles=File:'
-                    end_of_end_point_str = '&prop=imageinfo&iiprop=extmetadata&format=json'
-                    print(start_of_end_point_str + image_name + end_of_end_point_str)
-                    result = requests.get(
-                        start_of_end_point_str + image_name + end_of_end_point_str)
-                    result = result.json()
-                    page_id = next(iter(result['query']['pages']))
-                    image_info = result['query']['pages'][page_id]['imageinfo']
-
-                    return image_info
+                    endpoint = (
+                            "https://commons.wikimedia.org/w/api.php"
+                            "?action=query&titles=File:" + urllib.parse.quote(image_name) +
+                            "&prop=imageinfo&iiprop=extmetadata&format=json"
+                    )
+                    result = requests.get(endpoint, headers=headers).json()
+                    page_id = next(iter(result["query"]["pages"]))
+                    return result["query"]["pages"][page_id]["imageinfo"]
 
                 try:
                     metadata = extract_image_license(newfile)
@@ -490,14 +496,10 @@ CREATE TABLE devill.tmpsites AS (
                     return None
 
                 image = {
-                    'url': 'https://upload.wikimedia.org/wikipedia/commons/' + md5[
-                                                                               0:1] + '/' + md5[
-                                                                                            0:2] + '/' + newfile,
-                    'urlthumb': 'https://upload.wikimedia.org/wikipedia/commons/thumb/' + md5[
-                                                                                          0:1] + '/' + md5[
-                                                                                                       0:2] + '/' + newfile + '/200px-' + newfile,
-                    'metadata': metadata[0]['extmetadata'],
-                    'origin': 'https://commons.wikimedia.org/wiki/File:' + newfile
+                    "url": f"https://upload.wikimedia.org/wikipedia/commons/{md5[0:1]}/{md5[0:2]}/{newfile}",
+                    "urlthumb": f"https://upload.wikimedia.org/wikipedia/commons/thumb/{md5[0:1]}/{md5[0:2]}/{newfile}/200px-{newfile}",
+                    "metadata": metadata[0]["extmetadata"],
+                    "origin": f"https://commons.wikimedia.org/wiki/File:{newfile}",
                 }
 
                 return image
@@ -505,13 +507,28 @@ CREATE TABLE devill.tmpsites AS (
                 return None
         except Exception:
             return None
+
     @staticmethod
     def getWikidata(id):
         import urllib, json
 
-        with urllib.request.urlopen(
-                "https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&search=" + id + "&language=en") as url:
-            wdata = json.loads(url.read().decode())
+        url = (
+                "https://www.wikidata.org/w/api.php"
+                "?action=wbsearchentities&format=json&language=en&search=" + id
+        )
+
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": (
+                    "THANADOS (https://github.com/stefaneichert/thanados; "
+                    "stefan.eichert@nhm.at)"
+                )
+            },
+        )
+
+        with urllib.request.urlopen(req) as response:
+            wdata = json.loads(response.read().decode())
 
         try:
             description = wdata['search'][0]['description']
