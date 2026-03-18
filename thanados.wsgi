@@ -1,5 +1,8 @@
-import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import os
+
+path = '/var/www/frontend/devill'
+if path not in sys.path:
+    sys.path.insert(0, path)
 
 from thanados import app as application
