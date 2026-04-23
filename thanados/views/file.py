@@ -473,7 +473,18 @@ def edm(img_id=None, direct=False):
             'rightsholder': app.config['META_ORGANISATION']
         }
 
-        g.cursor.execute(f'SELECT creator, license_holder FROM model.file_info WHERE entity_id = {img_id}')
+        g.cursor.execute("""
+            SELECT
+                string_agg(
+                        CASE WHEN rhf.description = 'creator' 
+                                 THEN rh.name END, ', ') AS creator,
+                string_agg(
+                        CASE WHEN rhf.description = 'license_holder' 
+                                 THEN rh.name END, ', ') AS license_holder
+            FROM model.rights_holder rh
+            JOIN model.rights_holder_file rhf ON rh.id = rhf.rights_holder_id
+            WHERE rhf.entity_id = %(id)s
+        """, {'id': img_id})
         result = g.cursor.fetchone()
         if result:
             if result.creator:
