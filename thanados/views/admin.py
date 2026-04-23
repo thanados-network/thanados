@@ -986,8 +986,28 @@ CREATE TABLE thanados.filestmp AS
 
 DROP TABLE thanados.files;
 CREATE TABLE thanados.files AS
-    (SELECT f.*, fi.creator, fi.license_holder
-     FROM thanados.filestmp f JOIN model.file_info fi ON f.id = fi.entity_id);
+WITH rights_aggregated AS (
+    SELECT 
+        rhf.entity_id,
+        string_agg(rh.name, ', ') FILTER (WHERE rhf.description = 'creator') AS creator,
+        string_agg(rh.name, ', ') FILTER (WHERE rhf.description = 'license_holder') AS license_holder
+    FROM 
+        model.rights_holder_file rhf
+    JOIN 
+        model.rights_holder rh ON rhf.rights_holder_id = rh.id
+    WHERE 
+        rhf.description IN ('creator', 'license_holder')
+    GROUP BY 
+        rhf.entity_id
+)
+SELECT 
+    f.*, 
+    ra.creator, 
+    ra.license_holder
+FROM 
+    thanados.filestmp f
+LEFT JOIN 
+    rights_aggregated ra ON f.id = ra.entity_id;
     """
     g.cursor.execute(sql_2)
     filesfound = 0
