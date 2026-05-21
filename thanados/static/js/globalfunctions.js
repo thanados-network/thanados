@@ -1565,19 +1565,6 @@ function getBasemaps() {
         maxNativeZoom: 21
     });
 
-    //mapbox
-    mapboxnatural = L.tileLayer(
-        'https://api.mapbox.com/styles/v1/thanados/ck6cakwq308tr1ioi58wkddsx/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoidGhhbmFkb3MiLCJhIjoiY2s0NGFieHZxMDhqcjNubjA1bzJqMWFrdyJ9.JkTrwwm87S2yRFqRnMkpUw', {
-            crossOrigin: "",
-            tileSize: 512,
-            zoomOffset: -1,
-            attribution:
-                '<a href="#" style="display: inline-block" class="togglebtn" onclick="$( this ).next().toggle()">&copy; Info</a>' +
-                '<div id="myattr" class="mapAttr" style="display: inline-block">&nbsp ' + mywindowtitle + '. Map Tiles: &copy; <a href="https://apps.mapbox.com/feedback/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a></div>',
-            maxZoom: 25,
-            maxNativeZoom: 22
-        });
-
 //czech basemap
     basemap_cz = L.tileLayer.wms('http://geoportal.cuzk.cz/WMS_ZM10_PUB/WMService.aspx', {
         layers: 'GR_ZM10',
