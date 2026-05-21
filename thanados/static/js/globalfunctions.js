@@ -302,6 +302,7 @@ function checkAvailable(appendLevel, type) {
 
 function initiateTree(Iter, appendLevel, criteria, targetField) {
     var form;
+
     switch (appendLevel) {
         case "burial_site":
             form = "place";
@@ -346,7 +347,6 @@ function initiateTree(Iter, appendLevel, criteria, targetField) {
             }
         }
     });
-
     $(function () {
         $('#jstree').jstree({
                 'core': {

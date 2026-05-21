@@ -1930,6 +1930,7 @@ WHERE name_path LIKE 'Chronology%'
    OR name_path LIKE 'Count%'
    OR name_path LIKE '%DeVill Properties%'
    OR name_path LIKE 'Evidence%'
+   OR name_path LIKE 'Administrative unit%'
 UNION ALL
 SELECT DISTINCT 'dimensions' AS level, id::text, name AS text, parent_id::text AS parent, path, name_path, topparent, forms
 FROM devill.types_all

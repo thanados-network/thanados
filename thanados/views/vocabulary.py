@@ -126,6 +126,7 @@ def vocabulary_view(object_id: int, format_=None):
 
     # get dataset for type entity
     sql_base = 'SELECT * FROM model.entity WHERE id = %(object_id)s;'
+
     g.cursor.execute(sql_base, {'object_id': object_id})
     output_base = g.cursor.fetchone()
 
@@ -144,8 +145,8 @@ def vocabulary_view(object_id: int, format_=None):
     if not output_base:
         abort(403)
     # check if type class
-    CRMclass = output_base.cidoc_class_code
-    if CRMclass not in ['E55']:
+    oa_class = output_base.openatlas_class_name
+    if oa_class not in ['type', 'administrative_unit']:
         abort(403)
 
     extrefs = """
