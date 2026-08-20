@@ -139,8 +139,8 @@ def vocabulary_view(object_id: int, format_=None):
     if not output_base:
         abort(403)
     # check if type class
-    CRMclass = output_base.cidoc_class_code
-    if CRMclass not in ['E55']:
+    openatlas_class = output_base.openatlas_class_name
+    if openatlas_class not in ['type', 'type_tools']:
         abort(403)
 
     extrefs = """

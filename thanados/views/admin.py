@@ -112,7 +112,7 @@ SELECT parent_id FROM thanados.extrefs WHERE name = 'GeoNames')) ng1 WHERE ng1.c
         missingeonames = []
 
     sql_refs = """
-    SELECT jsonb_agg(jsonb_build_object('id', id, 'name', name, 'citation', description)) AS refs FROM (SELECT id, name, description FROM model.entity WHERE cidoc_class_code = 'E31' AND openatlas_class_name = 'bibliography' ORDER BY name) a
+    SELECT jsonb_agg(jsonb_build_object('id', id, 'name', name, 'citation', description)) AS refs FROM (SELECT id, name, description FROM model.entity WHERE openatlas_class_name = 'bibliography' ORDER BY name) a
         """
     try:
         g.cursor.execute(sql_refs)
