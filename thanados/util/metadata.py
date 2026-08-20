@@ -48,9 +48,12 @@ def get_metadata(id):
         }
     }
 
-    g.cursor.execute("SELECT name, cidoc_class_code, " \
-                     "split_part(description, '##', 1) AS desc, created, " \
-                     "modified FROM model.entity WHERE id = %(id)s", {"id": id})
+    g.cursor.execute("SELECT e.name, oa.cidoc_class_code, " 
+                     "split_part(description, '##', 1) AS desc, created, "
+                     "modified FROM model.entity e "
+                     "JOIN model.openatlas_class oa "
+                     "ON e.openatlas_class_name = oa.name "
+                     "WHERE e.id = %(id)s", {"id": id})
     result1 = g.cursor.fetchone()
 
     created = result1.created.strftime('%Y-%m-%d')
