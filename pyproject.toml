@@ -49,6 +49,7 @@ dependencies = [
     "coverage>=7.6.0",
     "fiona>=1.10.0",
     "iiif-prezi3>=3.1.0",
+    "pylint>=4.0.7",
 ]
 
 [build-system]
