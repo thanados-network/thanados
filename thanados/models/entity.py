@@ -598,10 +598,10 @@ class RCData:
         from matplotlib import pyplot
         from io import BytesIO
         from thanados.models.iosacal import core, plot
-        import pkg_resources
+        import importlib.resources
         curvefile = curve
-        curve_data_bytes = pkg_resources.resource_string(
-            "thanados.models.iosacal", "data/%s" % curve)
+        curve_data_bytes = importlib.resources.files(
+            "thanados.models.iosacal").joinpath("data", curve).read_bytes()
         curve_data_string = curve_data_bytes.decode('latin1')
         curve = core.CalibrationCurve(curve_data_string, curvefile)
         if childsample:
@@ -645,7 +645,7 @@ class RCData:
         from matplotlib import pyplot
         from io import BytesIO
         from thanados.models.iosacal import core, plot
-        import pkg_resources
+        import importlib.resources
 
         sql = """
               SELECT entity_id, jsonb_agg(sample::JSONB) AS sample
@@ -687,9 +687,8 @@ class RCData:
                 date = int((spec.split(' ± ', 1)[0]).replace((lab + ' : '), ''))
                 range = int(spec.split(' ± ', 1)[1])
                 curvefile = "intcal20.14c"
-                curve_data_bytes = pkg_resources.resource_string(
-                    "thanados.models.iosacal",
-                    "data/%s" % curvefile)
+                curve_data_bytes = importlib.resources.files(
+                    "thanados.models.iosacal").joinpath("data", curvefile).read_bytes()
                 curve_data_string = curve_data_bytes.decode('latin1')
 
                 if count > 1:
