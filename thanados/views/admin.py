@@ -2742,12 +2742,12 @@ def geoclean_execute():  # pragma: no cover
     for row in types:
         prefTerm = None
         vocab = row.name
-        print(row.type_id)
-        print(vocab)
+        #print(row.type_id)
+        #print(vocab)
         if row.name == 'Getty AAT':
             try:
                 prefTerm = (Data.getGettyData(str(row.identifier)))['label']
-                print(prefTerm)
+                #print(prefTerm)
                 g.cursor.execute(sqlPrefs,
                                  {'prefTerm': prefTerm, 'type_id': row.type_id,
                                   'vocab': vocab})
@@ -2756,7 +2756,7 @@ def geoclean_execute():  # pragma: no cover
 
         if row.name == 'Wikidata':
             prefTerm = (Data.getWikidata(str(row.identifier)))['label']
-            print(prefTerm)
+            #print(prefTerm)
             g.cursor.execute(sqlPrefs,
                              {'prefTerm': prefTerm, 'type_id': row.type_id,
                               'vocab': vocab})

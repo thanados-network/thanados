@@ -37,12 +37,12 @@ def api_download():
                 break
 
         if not found:
-            print(row.id)
+            # print(row.id)
             for extension in app.config['MEDIA_EXTENSION']:
                 file_name = f'{row.id}{extension}'
                 try:
                     r = requests.get(app.config["API_FILE_DISPLAY"] + file_name)
-                    print(f'trying {extension}: {r.status_code}')
+                    # print(f'trying {extension}: {r.status_code}')
                     if r.status_code == 200:
                         path = \
                             f'thanados{app.config["WEB_FOLDER_PATH"]}/' \
@@ -66,9 +66,9 @@ def api_download():
 
         file_done += 1
         percent = int(file_done / len(licensed_file_entities) * 100)
-        print(
-            f'{percent}% - File: {file_name} - '
-            f'{file_done} of {len(licensed_file_entities)}: {message}')
+        #print(
+        #   f'{percent}% - File: {file_name} - '
+        #   f'{file_done} of {len(licensed_file_entities)}: {message}')
 
     print(
         f'{len(licensed_file_entities) - not_found} of '
