@@ -1466,10 +1466,14 @@ WHERE begin_comment = '';
 UPDATE thanados.tmp
 SET end_comment = NULL
 WHERE end_comment = '';
-UPDATE thanados.tmp SET description = (SELECT split_part(description, '##German', 1)); --hack to remove German descriptions
-UPDATE thanados.tmp SET description = (SELECT split_part(description, '##german', 1)); --hack to remove German descriptions
-UPDATE thanados.tmp SET description = (SELECT split_part(description, '##Deutsch', 1)); --hack to remove German descriptions
-UPDATE thanados.tmp SET description = (SELECT split_part(description, '##deutsch', 1)); --hack to remove German descriptions
+UPDATE thanados.tmp
+SET description = TRIM(
+    (regexp_match(description, '##en_##\s*(.*?)\s*##_en##', 's'))[1])
+WHERE description LIKE '%##en_##%';
+-- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##German', 1)); --hack to remove German descriptions
+-- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##german', 1)); --hack to remove German descriptions
+-- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##Deutsch', 1)); --hack to remove German descriptions
+-- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##deutsch', 1)); --hack to remove German descriptions
 UPDATE thanados.tmp SET description = (SELECT split_part(description, '##RCD', 1)); --hack to remove Radiocarbon string
 --1,4s
 """

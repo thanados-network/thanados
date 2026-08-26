@@ -48,9 +48,25 @@ def get_metadata(id):
         }
     }
 
-    g.cursor.execute("SELECT name, cidoc_class_code, " \
-                     "split_part(description, '##', 1) AS desc, created, " \
-                     "modified FROM model.entity WHERE id = %(id)s", {"id": id})
+    # g.cursor.execute("SELECT name, cidoc_class_code, " \
+    #                  "split_part(description, '##', 1) AS desc, created, " \
+    #                  "modified FROM model.entity WHERE id = %(id)s", {"id": id})
+    g.cursor.execute(
+        """
+        SELECT name,
+               cidoc_class_code,
+               COALESCE(
+                       TRIM((regexp_match(description,
+                                          '##en_##\\s*(.*?)\\s*##_en##',
+                                          's'))[1]),
+                       description
+               ) AS desc, 
+            created, 
+            modified
+        FROM model.entity
+        WHERE id = %(id)s
+        """,
+        {"id": id})
     result1 = g.cursor.fetchone()
 
     created = result1.created.strftime('%Y-%m-%d')
