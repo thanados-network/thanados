@@ -1468,7 +1468,7 @@ SET end_comment = NULL
 WHERE end_comment = '';
 UPDATE thanados.tmp
 SET description = TRIM(
-    (regexp_match(description, '##en_##\s*(.*?)\s*##_en##', 's'))[1])
+    (regexp_match(description, '##en_##\\s*(.*?)\\s*##_en##', 's'))[1])
 WHERE description LIKE '%##en_##%';
 -- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##German', 1)); --hack to remove German descriptions
 -- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##german', 1)); --hack to remove German descriptions

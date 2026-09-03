@@ -15,7 +15,7 @@ class Data:
                     CREATE TABLE thanados.tmpsites AS (SELECT s.child_name                                           AS name,
                                                               -- REPLACE(split_part(s.description, '##', 1), '"', '``') AS description,
                                                               REPLACE(COALESCE(
-                                                                TRIM((regexp_match(s.description, '##en_##\s*(.*?)\s*##_en##', 's'))[1]),
+                                                                TRIM((regexp_match(s.description, '##en_##\\s*(.*?)\\s*##_en##', 's'))[1]),
                                                                   s.description
                                                               ),'"', '``') AS description,
                                                               s.begin_from                                           AS begin,
