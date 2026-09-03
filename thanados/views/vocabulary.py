@@ -354,7 +354,7 @@ def vocabulary_view(object_id: int, format_=None):
 
         for row in output_files:
             file_name = (Data.get_file_path(row.id))
-            print(file_name)
+            # print(file_name)
             file_id = (row.id)
             file = {'id': file_id, 'file_name': (loc_image + file_name)}
             g.cursor.execute(sql_file_refs, {'file_id': file_id})

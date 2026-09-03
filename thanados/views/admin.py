@@ -671,8 +671,8 @@ UPDATE thanados.entitiestmp SET end_from = end_to WHERE end_to IS NOT NULL and e
             """
     nearestneighbour = 0
     for row in result:
-        sys.stdout.write("\rneighbours found: " + str(nearestneighbour))
-        sys.stdout.flush()
+        #sys.stdout.write("\rneighbours found: " + str(nearestneighbour))
+        #sys.stdout.flush()
         g.cursor.execute(sql2, {'polyId': row.id, 'parentId': row.parent_id})
         nearestneighbour = nearestneighbour + 1
 
@@ -1028,10 +1028,10 @@ LEFT JOIN
         g.cursor.execute(
             "UPDATE thanados.files SET filename = %(file_name)s WHERE id = %(row_id)s",
             {'file_name': file_name, 'row_id': row_id})
-        sys.stdout.write(
-            "\rfiles found: " + str(filesfound) + " files missing: " + str(
-                filesmissing))
-        sys.stdout.flush()
+        #sys.stdout.write(
+        #    "\rfiles found: " + str(filesfound) + " files missing: " + str(
+        #        filesmissing))
+        #sys.stdout.flush()
 
     print(missingids)
     g.cursor.execute('DELETE FROM thanados.files WHERE filename = NULL')
@@ -1146,8 +1146,7 @@ DROP TABLE IF EXISTS thanados.refsys;
                 sample = 'Unknown Sample Id'
             else:
                 sample = row.sample
-            print(
-                row.entity_id + ': Sample: ' + sample + ', ' + row.date + ' +- ' + row.range)
+            # print(row.entity_id + ': Sample: ' + sample + ', ' + row.date + ' +- ' + row.range)
             RCData_ = json.dumps(
                 RCData.radiocarbon(row.entity_id, int(row.date), int(row.range),
                                    'ad', sample, 'intcal20.14c', False))
@@ -1467,10 +1466,14 @@ WHERE begin_comment = '';
 UPDATE thanados.tmp
 SET end_comment = NULL
 WHERE end_comment = '';
-UPDATE thanados.tmp SET description = (SELECT split_part(description, '##German', 1)); --hack to remove German descriptions
-UPDATE thanados.tmp SET description = (SELECT split_part(description, '##german', 1)); --hack to remove German descriptions
-UPDATE thanados.tmp SET description = (SELECT split_part(description, '##Deutsch', 1)); --hack to remove German descriptions
-UPDATE thanados.tmp SET description = (SELECT split_part(description, '##deutsch', 1)); --hack to remove German descriptions
+UPDATE thanados.tmp
+SET description = TRIM(
+    (regexp_match(description, '##en_##\s*(.*?)\s*##_en##', 's'))[1])
+WHERE description LIKE '%##en_##%';
+-- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##German', 1)); --hack to remove German descriptions
+-- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##german', 1)); --hack to remove German descriptions
+-- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##Deutsch', 1)); --hack to remove German descriptions
+-- UPDATE thanados.tmp SET description = (SELECT split_part(description, '##deutsch', 1)); --hack to remove German descriptions
 UPDATE thanados.tmp SET description = (SELECT split_part(description, '##RCD', 1)); --hack to remove Radiocarbon string
 --1,4s
 """
@@ -2742,12 +2745,12 @@ def geoclean_execute():  # pragma: no cover
     for row in types:
         prefTerm = None
         vocab = row.name
-        print(row.type_id)
-        print(vocab)
+        #print(row.type_id)
+        #print(vocab)
         if row.name == 'Getty AAT':
             try:
                 prefTerm = (Data.getGettyData(str(row.identifier)))['label']
-                print(prefTerm)
+                #print(prefTerm)
                 g.cursor.execute(sqlPrefs,
                                  {'prefTerm': prefTerm, 'type_id': row.type_id,
                                   'vocab': vocab})
@@ -2756,7 +2759,7 @@ def geoclean_execute():  # pragma: no cover
 
         if row.name == 'Wikidata':
             prefTerm = (Data.getWikidata(str(row.identifier)))['label']
-            print(prefTerm)
+            #print(prefTerm)
             g.cursor.execute(sqlPrefs,
                              {'prefTerm': prefTerm, 'type_id': row.type_id,
                               'vocab': vocab})

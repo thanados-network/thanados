@@ -126,7 +126,10 @@ def ajax_test() -> str:
             SELECT DISTINCT 
                 s.child_id,
                 s.child_name,
-                split_part(e.description, '##', 1) AS description, 
+                -- split_part(e.description, '##', 1) AS description, 
+                COALESCE(
+                TRIM((regexp_match(e.description, '##en_##\s*(.*?)\s*##_en##', 's'))[1]),
+                e.description) AS description,
                 s.type,
                 s.type_id,
                 s.path AS maintype,

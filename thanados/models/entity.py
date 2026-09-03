@@ -13,7 +13,11 @@ class Data:
         sql_sites = """
                     DROP TABLE IF EXISTS thanados.tmpsites;
                     CREATE TABLE thanados.tmpsites AS (SELECT s.child_name                                           AS name,
-                                                              REPLACE(split_part(s.description, '##', 1), '"', '``') AS description,
+                                                              -- REPLACE(split_part(s.description, '##', 1), '"', '``') AS description,
+                                                              REPLACE(COALESCE(
+                                                                TRIM((regexp_match(s.description, '##en_##\s*(.*?)\s*##_en##', 's'))[1]),
+                                                                  s.description
+                                                              ),'"', '``') AS description,
                                                               s.begin_from                                           AS begin,
                                                               s.end_to                                               AS end,
                                                               s.child_id                                             AS id,
@@ -102,7 +106,7 @@ class Data:
                 g.cursor.execute(broadsql, {'parent_id': parent.parent_id,
                                             'refId': refId})
                 broadresult = g.cursor.fetchone()
-                print(broadresult)
+                # print(broadresult)
                 if broadresult:
                     insertbroad = """
                                   INSERT INTO thanados.ext_types (type_id,
@@ -130,15 +134,15 @@ class Data:
                                                    'id': broadresult.id,
                                                    'identifier': broadresult.identifier})
                 else:
-                    print('next try')
+                    # print('next try')
                     getBroadMatch(parent.parent_id, refId)
             else:
                 pass
 
         for row in refsys:
             refId = row.entity_id
-            print('refId')
-            print(refId)
+            # print('refId')
+            # print(refId)
             for ent in result:
                 type_id = ent.id
                 getBroadMatch(type_id, refId)
@@ -629,7 +633,7 @@ class RCData:
             else:
                 buf.seek(0)
                 filename = app.root_path + "/static/images/rc_dates/rc_" + entid + ".png"
-                print(filename)
+                # print(filename)
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
 
                 with open(filename, "wb") as f:
