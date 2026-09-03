@@ -48,9 +48,9 @@ def get_metadata(id):
         }
     }
 
-# g.cursor.execute("SELECT name, cidoc_class_code, " \
-#                  "split_part(description, '##', 1) AS desc, created, " \
-#                  "modified FROM model.entity WHERE id = %(id)s", {"id": id})
+    # g.cursor.execute("SELECT name, cidoc_class_code, " \
+    #                  "split_part(description, '##', 1) AS desc, created, " \
+    #                  "modified FROM model.entity WHERE id = %(id)s", {"id": id})
 
     g.cursor.execute(
         """
